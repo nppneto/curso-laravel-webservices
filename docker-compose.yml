@@ -1,0 +1,52 @@
+version: "3.7"
+services:
+    # Imagem do projeto
+    webservice:
+        build:
+            args:
+                user: nelsonp2n
+                uid: 1000
+            context: ./
+            dockerfile: Dockerfile
+        image: laravel-app
+        container_name: laravel-webservice
+        restart: unless-stopped
+        working_dir: /var/www/ # working dir
+        volumes:
+            - ./:/var/www
+        networks:
+            - my_network
+    
+    # Nginx
+    nginx:
+        image: nginx:alpine
+        container_name: nginx
+        restart: unless-stopped
+        ports:
+            - 8000:80
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/:/etc/nginx/conf.d/
+        networks:
+            - my_network
+
+    # Mysql
+    mysql:
+        image: mysql:5.7.22
+        container_name: mysql
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+            MYSQL_PASSWORD: ${DB_PASSWORD}
+            MYSQL_USER: ${DB_USERNAME}
+        volumes:
+            - ./.docker/mysql/dbdata:/var/lib/mysql
+        ports:
+            - 3388:3306
+        networks:
+            - my_network
+
+networks:
+    my_network:
+        driver: bridge
